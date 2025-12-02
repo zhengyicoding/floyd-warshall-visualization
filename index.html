@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Floyd-Warshall Algorithm Visualization</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-align: center;
+            color: #111827;
+        }
+        
+        .section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 24px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #111827;
+        }
+        
+        .graph-container {
+            width: 100%;
+            height: 256px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 2px solid #d1d5db;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        th {
+            background: #e5e7eb;
+            font-weight: bold;
+        }
+        
+        td {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+        
+        .cell-white { background: white; }
+        .cell-green { background: #bbf7d0; }
+        .cell-yellow { background: #fef3c7; }
+        .cell-blue { background: #bfdbfe; }
+        .cell-gray { background: #f3f4f6; }
+        
+        .legend {
+            margin-top: 16px;
+            font-size: 14px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .description-box {
+            background: #dbeafe;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+            margin-bottom: 24px;
+        }
+        
+        .description-text {
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+        }
+        
+        .formula-text {
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .controls {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-reset {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-reset:hover:not(:disabled) {
+            background: #4b5563;
+        }
+        
+        .btn-nav {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-nav:hover:not(:disabled) {
+            background: #2563eb;
+        }
+        
+        .btn-play {
+            background: #22c55e;
+            color: white;
+            padding: 8px 24px;
+        }
+        
+        .btn-play:hover {
+            background: #16a34a;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .speed-control label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .speed-control select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .explanation {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 24px;
+        }
+        
+        .explanation h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .explanation ol {
+            margin-left: 20px;
+        }
+        
+        .explanation li {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .explanation strong {
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const Play = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+        );
+
+        const Pause = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="6" y="4" width="4" height="16"></rect>
+                <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+        );
+
+        const RotateCcw = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+        );
+
+        const ChevronLeft = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        );
+
+        const ChevronRight = ({ size = 20 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        );
+
+        const FloydWarshallVisualization = () => {
+            const nodes = ['A', 'B', 'C', 'D'];
+            const numNodes = 4;
+            
+            const initialMatrix = [
+                [0, 3, Infinity, 7],
+                [8, 0, 2, Infinity],
+                [5, Infinity, 0, 1],
+                [2, Infinity, Infinity, 0]
+            ];
+
+            const [step, setStep] = useState(0);
+            const [isPlaying, setIsPlaying] = useState(false);
+            const [speed, setSpeed] = useState(1000);
+
+            const calculateSteps = () => {
+                const steps = [];
+                const dist = initialMatrix.map(row => [...row]);
+                
+                steps.push({
+                    k: -1,
+                    i: -1,
+                    j: -1,
+                    dist: dist.map(row => [...row]),
+                    description: "Initial: Distance matrix shows direct edge weights. ∞ means no direct path.",
+                    highlight: null,
+                    improved: false
+                });
+
+                for (let k = 0; k < numNodes; k++) {
+                    for (let i = 0; i < numNodes; i++) {
+                        for (let j = 0; j < numNodes; j++) {
+                            const direct = dist[i][j];
+                            const throughK = dist[i][k] === Infinity || dist[k][j] === Infinity 
+                                ? Infinity 
+                                : dist[i][k] + dist[k][j];
+                            
+                            const improved = throughK < direct;
+                            
+                            if (improved) {
+                                dist[i][j] = throughK;
+                            }
+                            
+                            steps.push({
+                                k,
+                                i,
+                                j,
+                                dist: dist.map(row => [...row]),
+                                description: `k=${nodes[k]}, i=${nodes[i]}, j=${nodes[j]}: ` +
+                                    `Path ${nodes[i]}→${nodes[j]} ` +
+                                    (direct === Infinity ? '(∞)' : `(${direct})`) +
+                                    ` vs via ${nodes[k]} ` +
+                                    (throughK === Infinity ? '(∞)' : `(${dist[i][k]}+${dist[k][j]}=${throughK})`) +
+                                    (improved ? ' → IMPROVED! ✓' : ' → Keep current'),
+                                highlight: { i, j, k },
+                                improved
+                            });
+                        }
+                    }
+                }
+
+                steps.push({
+                    k: -1,
+                    i: -1,
+                    j: -1,
+                    dist: dist.map(row => [...row]),
+                    description: "Complete! All shortest paths computed. Check diagonal for negative cycles (all should be 0).",
+                    highlight: null,
+                    improved: false
+                });
+
+                return steps;
+            };
+
+            const steps = calculateSteps();
+            const currentStep = steps[step];
+
+            useEffect(() => {
+                if (isPlaying && step < steps.length - 1) {
+                    const timer = setTimeout(() => {
+                        setStep(s => s + 1);
+                    }, speed);
+                    return () => clearTimeout(timer);
+                } else if (step >= steps.length - 1) {
+                    setIsPlaying(false);
+                }
+            }, [isPlaying, step, speed, steps.length]);
+
+            const handleReset = () => {
+                setStep(0);
+                setIsPlaying(false);
+            };
+
+            const handleNext = () => {
+                if (step < steps.length - 1) setStep(s => s + 1);
+            };
+
+            const handlePrev = () => {
+                if (step > 0) setStep(s => s - 1);
+            };
+
+            const getCellColor = (i, j) => {
+                if (!currentStep.highlight) return 'cell-white';
+                
+                const { i: hi, j: hj, k: hk } = currentStep.highlight;
+                
+                if (i === hi && j === hj) {
+                    return currentStep.improved ? 'cell-green' : 'cell-yellow';
+                }
+                if (i === hi && j === hk) return 'cell-blue';
+                if (i === hk && j === hj) return 'cell-blue';
+                if (i === j) return 'cell-gray';
+                
+                return 'cell-white';
+            };
+
+            const formatValue = (val) => {
+                return val === Infinity ? '∞' : val;
+            };
+
+            return (
+                <div className="container">
+                    <h2 className="title">Floyd-Warshall Algorithm Visualization</h2>
+                    
+                    <div className="section">
+                        <h3 className="section-title">Graph Structure</h3>
+                        <svg viewBox="0 0 400 300" className="graph-container">
+                            <defs>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="#666" />
+                                </marker>
+                            </defs>
+                            
+                            <line x1="100" y1="80" x2="300" y2="80" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                            <text x="200" y="70" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>3</text>
+                            
+                            <line x1="100" y1="100" x2="100" y2="220" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                            <text x="85" y="160" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>7</text>
+                            
+                            <path d="M 300 100 Q 200 120 110 100" stroke="#666" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" />
+                            <text x="200" y="130" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>8</text>
+                            
+                            <line x1="300" y1="100" x2="300" y2="220" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                            <text x="315" y="160" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>2</text>
+                            
+                            <path d="M 290 240 Q 200 270 110 240" stroke="#666" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" />
+                            <text x="200" y="280" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>5</text>
+                            
+                            <line x1="280" y1="240" x2="120" y2="240" stroke="#666" strokeWidth="2" markerEnd="url(#arrowhead)" />
+                            <text x="200" y="255" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>1</text>
+                            
+                            <path d="M 90 240 Q 60 160 90 100" stroke="#666" strokeWidth="2" fill="none" markerEnd="url(#arrowhead)" />
+                            <text x="60" y="170" textAnchor="middle" style={{fontSize: '14px', fill: '#dc2626', fontWeight: 'bold'}}>2</text>
+                            
+                            <circle cx="100" cy="80" r="25" fill={currentStep.highlight?.i === 0 || currentStep.highlight?.j === 0 || currentStep.highlight?.k === 0 ? '#fbbf24' : '#60a5fa'} stroke="#1e40af" strokeWidth="3" />
+                            <text x="100" y="90" textAnchor="middle" style={{fontSize: '20px', fontWeight: 'bold', fill: 'white'}}>A</text>
+                            
+                            <circle cx="300" cy="80" r="25" fill={currentStep.highlight?.i === 1 || currentStep.highlight?.j === 1 || currentStep.highlight?.k === 1 ? '#fbbf24' : '#60a5fa'} stroke="#1e40af" strokeWidth="3" />
+                            <text x="300" y="90" textAnchor="middle" style={{fontSize: '20px', fontWeight: 'bold', fill: 'white'}}>B</text>
+                            
+                            <circle cx="300" cy="240" r="25" fill={currentStep.highlight?.i === 2 || currentStep.highlight?.j === 2 || currentStep.highlight?.k === 2 ? '#fbbf24' : '#60a5fa'} stroke="#1e40af" strokeWidth="3" />
+                            <text x="300" y="250" textAnchor="middle" style={{fontSize: '20px', fontWeight: 'bold', fill: 'white'}}>C</text>
+                            
+                            <circle cx="100" cy="240" r="25" fill={currentStep.highlight?.i === 3 || currentStep.highlight?.j === 3 || currentStep.highlight?.k === 3 ? '#fbbf24' : '#60a5fa'} stroke="#1e40af" strokeWidth="3" />
+                            <text x="100" y="250" textAnchor="middle" style={{fontSize: '20px', fontWeight: 'bold', fill: 'white'}}>D</text>
+                        </svg>
+                    </div>
+
+                    <div className="section">
+                        <h3 className="section-title">Distance Matrix</h3>
+                        <div style={{overflowX: 'auto'}}>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        {nodes.map(node => (
+                                            <th key={node}>{node}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {nodes.map((rowNode, i) => (
+                                        <tr key={rowNode}>
+                                            <th>{rowNode}</th>
+                                            {nodes.map((colNode, j) => (
+                                                <td 
+                                                    key={colNode}
+                                                    className={getCellColor(i, j)}
+                                                >
+                                                    {formatValue(currentStep.dist[i][j])}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="legend">
+                            <div className="legend-item">
+                                <div className="legend-box cell-green"></div>
+                                <span>Improved path found</span>
+                            </div>
+                            <div className="legend-item">
+                                <div className="legend-box cell-yellow"></div>
+                                <span>Current comparison (no improvement)</span>
+                            </div>
+                            <div className="legend-item">
+                                <div className="legend-box cell-blue"></div>
+                                <span>Path components: dist[i][k] and dist[k][j]</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="description-box">
+                        <p className="description-text">
+                            <strong>Step {step + 1}/{steps.length}:</strong> {currentStep.description}
+                        </p>
+                        {currentStep.highlight && (
+                            <p className="formula-text">
+                                <strong>Formula:</strong> dist[{nodes[currentStep.highlight.i]}][{nodes[currentStep.highlight.j]}] = min(
+                                {formatValue(step > 0 ? steps[step - 1].dist[currentStep.highlight.i][currentStep.highlight.j] : currentStep.dist[currentStep.highlight.i][currentStep.highlight.j])}, 
+                                {formatValue(currentStep.dist[currentStep.highlight.i][currentStep.highlight.k])} + {formatValue(currentStep.dist[currentStep.highlight.k][currentStep.highlight.j])})
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="controls">
+                        <div className="button-group">
+                            <button onClick={handleReset} className="btn-reset">
+                                <RotateCcw size={20} />
+                                Reset
+                            </button>
+                            
+                            <button onClick={handlePrev} disabled={step === 0} className="btn-nav">
+                                <ChevronLeft size={20} />
+                                Previous
+                            </button>
+                            
+                            <button onClick={() => setIsPlaying(!isPlaying)} className="btn-play">
+                                {isPlaying ? <><Pause size={20} /> Pause</> : <><Play size={20} /> Play</>}
+                            </button>
+                            
+                            <button onClick={handleNext} disabled={step === steps.length - 1} className="btn-nav">
+                                Next
+                                <ChevronRight size={20} />
+                            </button>
+                            
+                            <div className="speed-control">
+                                <label>Speed:</label>
+                                <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
+                                    <option value={2000}>Slow (2s)</option>
+                                    <option value={1000}>Normal (1s)</option>
+                                    <option value={500}>Fast (0.5s)</option>
+                                    <option value={200}>Very Fast (0.2s)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style={{marginTop: '16px'}}>
+                            <input
+                                type="range"
+                                min="0"
+                                max={steps.length - 1}
+                                value={step}
+                                onChange={(e) => setStep(Number(e.target.value))}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="explanation">
+                        <h3>How Floyd-Warshall Works:</h3>
+                        <ol>
+                            <li><strong>Triple Nested Loop:</strong> For each intermediate node k, check all pairs (i, j)</li>
+                            <li><strong>Comparison:</strong> Is path i→j direct better, or via k?</li>
+                            <li><strong>Formula:</strong> dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])</li>
+                            <li><strong>Time Complexity:</strong> O(V³) = O(4³) = 64 comparisons for this 4-node graph</li>
+                            <li><strong>Result:</strong> All-pairs shortest paths in a single matrix!</li>
+                        </ol>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<FloydWarshallVisualization />, document.getElementById('root'));
+    </script>
+</body>
+</html>
